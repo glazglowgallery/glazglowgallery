@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 // ⚙️  CONFIGURATION — REPLACE THESE VALUES WITH YOUR OWN
 // ============================================================
 const CONFIG = {
-  GITHUB_TOKEN: "ghp_REPLACE_WITH_YOUR_ACTUAL_TOKEN",  // 👈 REPLACE THIS
+  GITHUB_TOKEN: import.meta.env.VITE_GITHUB_TOKEN,  // 👈 REPLACE THIS
   GITHUB_OWNER: "glazglowgallery",                      // 👈 Your GitHub username
   GITHUB_REPO:  "glazglowgallery",                      // 👈 Your repository name
   GITHUB_BRANCH: "main",                                // 👈 Your branch name
