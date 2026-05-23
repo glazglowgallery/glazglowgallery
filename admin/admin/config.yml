@@ -1,0 +1,85 @@
+backend:
+  name: github
+  repo: glazglowgallery/glazglowgallery
+  branch: main
+
+media_folder: images/products
+public_folder: /images/products
+
+collections:
+  - name: products
+    label: Products
+    folder: content/products
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: Product Name
+        name: title
+        widget: string
+      - label: Category
+        name: category
+        widget: select
+        options:
+          - Resin Art
+          - Textured Art
+      - label: Price
+        name: price
+        widget: string
+      - label: Original Price
+        name: original_price
+        widget: string
+        required: false
+      - label: Badge
+        name: badge
+        widget: select
+        required: false
+        options:
+          - New
+          - Limited
+      - label: Product Image
+        name: image
+        widget: image
+      - label: Description
+        name: description
+        widget: text
+
+  - name: reviews
+    label: Reviews
+    folder: content/reviews
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: Customer Name
+        name: name
+        widget: string
+      - label: Location
+        name: location
+        widget: string
+      - label: Review Text
+        name: review
+        widget: text
+      - label: Rating
+        name: rating
+        widget: number
+        min: 1
+        max: 5
+
+  - name: settings
+    label: Site Settings
+    files:
+      - label: General Settings
+        name: general
+        file: content/settings.json
+        fields:
+          - label: Hero Title Line 1
+            name: hero_title_1
+            widget: string
+          - label: Hero Title Line 2
+            name: hero_title_2
+            widget: string
+          - label: Hero Description
+            name: hero_description
+            widget: text
+          - label: Contact Email
+            name: contact_email
+            widget: string
