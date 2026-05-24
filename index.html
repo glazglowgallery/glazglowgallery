@@ -423,40 +423,48 @@
       }
     }
 
-    // ── Load Enquiry Form ──
     async function loadEnquiry() {
-      const section=document.getElementById('enquirySection');
-      try {
-        const res=await fetch('content/enquiry.json');
-        if(!res.ok)throw new Error();
-        const e=await res.json();
-        if(e.section_title)document.getElementById('enquiryTitle').innerHTML=e.section_title.replace(',','<br>');
-        if(e.section_subtitle)document.getElementById('enquirySubtitle').textContent=e.section_subtitle;
-        section.innerHTML=`<form class="enquiry-form" onsubmit="submitEnquiry(event)">
-          <div class="enquiry-row">
-            <input class="enquiry-input" type="text" placeholder="Your name" required />
-            <input class="enquiry-input" type="email" placeholder="Your email address" required />
-          </div>
-          <input class="enquiry-input" type="text" placeholder="Subject" />
-          <textarea class="enquiry-textarea" placeholder="Your message or enquiry..."></textarea>
-          <div class="enquiry-row">
-            <button type="submit" class="enquiry-btn" style="flex:1">Send Enquiry</button>
-          </div>
-          <p class="enquiry-note" id="contactNote">We will respond within 24 hours. Email us directly: ${e.enquiry_email||'info@glazglowgallery.com'}</p>
-        </form>`;
-      } catch {
-        section.innerHTML=`<form class="enquiry-form" onsubmit="submitEnquiry(event)">
-          <div class="enquiry-row">
-            <input class="enquiry-input" type="text" placeholder="Your name" required />
-            <input class="enquiry-input" type="email" placeholder="Your email address" required />
-          </div>
-          <input class="enquiry-input" type="text" placeholder="Subject" />
-          <textarea class="enquiry-textarea" placeholder="Your message or enquiry..."></textarea>
-          <div class="enquiry-row"><button type="submit" class="enquiry-btn" style="flex:1">Send Enquiry</button></div>
-          <p class="enquiry-note" id="contactNote">We will respond within 24 hours. Email: info@glazglowgallery.com</p>
-        </form>`;
-      }
-    }
+  const section = document.getElementById('enquirySection');
+  const formHTML = `
+    <form class="enquiry-form" onsubmit="submitEnquiry(event)">
+      <div class="enquiry-row">
+        <input class="enquiry-input" type="text" 
+          placeholder="Your name *" required />
+        <input class="enquiry-input" type="email" 
+          placeholder="Your email address *" required />
+      </div>
+      <div class="enquiry-row">
+        <input class="enquiry-input" type="text" 
+          placeholder="City *" required />
+        <input class="enquiry-input" type="text" 
+          placeholder="Country *" required />
+      </div>
+      <input class="enquiry-input" style="width:100%" 
+        type="tel" placeholder="Phone number (optional)" />
+      <textarea class="enquiry-textarea" 
+        placeholder="Your enquiry or message *" 
+        required></textarea>
+      <button type="submit" class="enquiry-btn" 
+        style="width:100%">Send Enquiry →</button>
+      <p class="enquiry-note" id="contactNote">
+        * Required fields. We respond within 24 hours. 
+        Email us directly: info@glazglowgallery.com
+      </p>
+    </form>`;
+  try {
+    const res = await fetch('content/enquiry.json');
+    if (!res.ok) throw new Error();
+    const e = await res.json();
+    if (e.section_title) document.getElementById('enquiryTitle').innerHTML = e.section_title.replace(',','<br>');
+    if (e.section_subtitle) document.getElementById('enquirySubtitle').textContent = e.section_subtitle;
+    section.innerHTML = formHTML.replace(
+      'info@glazglowgallery.com',
+      e.enquiry_email || 'info@glazglowgallery.com'
+    );
+  } catch {
+    section.innerHTML = formHTML;
+  }
+}
 
     function submitEnquiry(e){
       e.preventDefault();
