@@ -426,30 +426,52 @@
     async function loadEnquiry() {
   const section = document.getElementById('enquirySection');
   const formHTML = `
-    <form class="enquiry-form" onsubmit="submitEnquiry(event)">
+    <form class="enquiry-form" id="enquiryForm">
+      <input type="hidden" 
+        name="access_key" 
+        value="ac62ecc1-69ad-4b1d-84c2-55c43539b8f0" />
+      <input type="hidden" 
+        name="subject" 
+        value="New Enquiry — GlazGlow Gallery" />
+      <input type="hidden" 
+        name="from_name" 
+        value="GlazGlow Gallery Website" />
+      <input type="checkbox" 
+        name="botcheck" 
+        style="display:none">
       <div class="enquiry-row">
-        <input class="enquiry-input" type="text" 
+        <input class="enquiry-input" 
+          type="text" name="name"
           placeholder="Your name *" required />
-        <input class="enquiry-input" type="email" 
+        <input class="enquiry-input" 
+          type="email" name="email"
           placeholder="Your email address *" required />
       </div>
       <div class="enquiry-row">
-        <input class="enquiry-input" type="text" 
+        <input class="enquiry-input" 
+          type="text" name="city"
           placeholder="City *" required />
-        <input class="enquiry-input" type="text" 
+        <input class="enquiry-input" 
+          type="text" name="country"
           placeholder="Country *" required />
       </div>
-      <input class="enquiry-input" style="width:100%" 
-        type="tel" placeholder="Phone number (optional)" />
+      <input class="enquiry-input" 
+        style="width:100%" 
+        type="tel" name="phone"
+        placeholder="Phone number (optional)" />
       <textarea class="enquiry-textarea" 
+        name="message"
         placeholder="Your enquiry or message *" 
         required></textarea>
-      <button type="submit" class="enquiry-btn" 
-        style="width:100%">Send Enquiry →</button>
+      <button type="submit" 
+        class="enquiry-btn" 
+        style="width:100%" 
+        id="enquirySubmitBtn">Send Enquiry →</button>
       <p class="enquiry-note" id="contactNote">
-        * Required fields. We respond within 24 hours. 
-        Email us directly: info@glazglowgallery.com
+        * Required fields. We respond within 24 hours.
+        Email: info@glazglowgallery.com
       </p>
+      <div id="enquiryResult" style="margin-top:1rem;font-size:.85rem;"></div>
     </form>`;
   try {
     const res = await fetch('content/enquiry.json');
@@ -464,6 +486,41 @@
   } catch {
     section.innerHTML = formHTML;
   }
+  setupEnquiryForm();
+}
+
+function setupEnquiryForm() {
+  const form = document.getElementById('enquiryForm');
+  if (!form) return;
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('enquirySubmitBtn');
+    const result = document.getElementById('enquiryResult');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    btn.style.background = '#C9B49A';
+    try {
+      const formData = new FormData(form);
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
+        btn.textContent = '✓ Enquiry Sent!';
+        btn.style.background = '#4a9e6b';
+        result.innerHTML = '<p style="color:#4a9e6b;font-weight:500">Thank you! We will respond within 24 hours.</p>';
+        form.reset();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch(err) {
+      btn.textContent = 'Send Enquiry →';
+      btn.disabled = false;
+      btn.style.background = '';
+      result.innerHTML = '<p style="color:#c0392b">Something went wrong. Please email us directly at info@glazglowgallery.com</p>';
+    }
+  });
 }
 
     function submitEnquiry(e){
