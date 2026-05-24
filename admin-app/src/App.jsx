@@ -52,6 +52,22 @@ async function githubPutBinary(path, base64Content, message, sha = null) {
   return res.json();
 }
 
+async function githubPutLarge(path, base64Content, message, sha = null) {
+  const body = { message, content: base64Content, branch: CONFIG.GITHUB_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(`${GITHUB_API}/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/contents/${path}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${CONFIG.GITHUB_TOKEN}`,
+      Accept: "application/vnd.github.v3+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || "Upload failed"); }
+  return res.json();
+}
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -754,6 +770,321 @@ Please return the complete modified HTML file only, with no explanation or markd
   );
 }
 
+function VideosTab({ showToast }) {
+  const [blocks, setBlocks] = useState([]);
+  const [heroSha, setHeroSha] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState({});
+  const [progress, setProgress] = useState({});
+  const fileRefs = [useRef(), useRef(), useRef()];
+
+  const BLOCK_INFO = [
+    {
+      label: "Left Block (Portrait)",
+      orientation: "Portrait — Vertical Video",
+      icon: "📱",
+      tip: "Film holding your phone upright (9:16 ratio)",
+      aspect: "9:16",
+      bgNote: "This is the tall block on the left side of the hero"
+    },
+    {
+      label: "Top Right Block (Landscape)",
+      orientation: "Landscape — Horizontal Video",
+      icon: "🖥️",
+      tip: "Film holding your phone sideways (16:9 ratio)",
+      aspect: "16:9",
+      bgNote: "This is the top block on the right side of the hero"
+    },
+    {
+      label: "Bottom Right Block (Landscape)",
+      orientation: "Landscape — Horizontal Video",
+      icon: "🖥️",
+      tip: "Film holding your phone sideways (16:9 ratio)",
+      aspect: "16:9",
+      bgNote: "This is the bottom block on the right side of the hero"
+    },
+  ];
+
+  useEffect(() => { loadHeroConfig(); }, []);
+
+  async function loadHeroConfig() {
+    setLoading(true);
+    try {
+      const data = await githubGet('content/hero.json');
+      const content = JSON.parse(decodeContent(data.content));
+      setBlocks(content.blocks || []);
+      setHeroSha(data.sha);
+    } catch {
+      setBlocks([
+        { label:"Resin Art", video_path:"", orientation:"portrait" },
+        { label:"Ocean Pour", video_path:"", orientation:"landscape" },
+        { label:"Texture Art", video_path:"", orientation:"landscape" },
+      ]);
+      setHeroSha(null);
+    }
+    setLoading(false);
+  }
+
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleVideoSelect(e, blockIdx) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file size — 50MB limit
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast(`❌ File too large: ${(file.size/1024/1024).toFixed(1)}MB. Maximum is 50MB. Please compress the video first.`, 'error');
+      e.target.value = '';
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('video/')) {
+      showToast('❌ Please select a video file (MP4, MOV etc)', 'error');
+      e.target.value = '';
+      return;
+    }
+
+    setUploading(u => ({ ...u, [blockIdx]: true }));
+    setProgress(p => ({ ...p, [blockIdx]: 0 }));
+
+    try {
+      showToast(`⏳ Reading video file...`, 'info');
+      setProgress(p => ({ ...p, [blockIdx]: 20 }));
+
+      // Convert to base64
+      const base64 = await readFileAsBase64(file);
+      setProgress(p => ({ ...p, [blockIdx]: 50 }));
+
+      // Create filename with timestamp to avoid caching
+      const ext = file.name.split('.').pop().toLowerCase();
+      const orientations = ['portrait', 'landscape', 'landscape'];
+      const filename = `hero-${orientations[blockIdx]}-${blockIdx + 1}-${Date.now()}.${ext}`;
+      const videoPath = `videos/${filename}`;
+
+      showToast(`⏳ Uploading to GitHub...`, 'info');
+      setProgress(p => ({ ...p, [blockIdx]: 60 }));
+
+      // Check if existing video to get SHA for replacement
+      let existingSha = null;
+      const existingPath = blocks[blockIdx]?.video_path?.replace(/^\//, '');
+      if (existingPath && existingPath !== '') {
+        try {
+          const existing = await githubGet(existingPath);
+          existingSha = existing.sha;
+        } catch {}
+      }
+
+      // Upload video to GitHub
+      await githubPutLarge(
+        videoPath,
+        base64,
+        `Upload hero video ${blockIdx + 1}: ${filename}`,
+        null
+      );
+
+      setProgress(p => ({ ...p, [blockIdx]: 85 }));
+
+      // Update hero.json with new video path
+      const updated = [...blocks];
+      updated[blockIdx] = {
+        ...updated[blockIdx],
+        video_path: `/${videoPath}`,
+        label: updated[blockIdx].label || BLOCK_INFO[blockIdx].label,
+      };
+      setBlocks(updated);
+
+      // Save updated hero.json
+      await githubPut(
+        'content/hero.json',
+        JSON.stringify({ blocks: updated }, null, 2),
+        `Update hero video ${blockIdx + 1}`,
+        heroSha
+      );
+
+      // Refresh SHA
+      const refreshed = await githubGet('content/hero.json');
+      setHeroSha(refreshed.sha);
+
+      setProgress(p => ({ ...p, [blockIdx]: 100 }));
+      showToast(`✅ Video uploaded! Website updates in 1-2 minutes.`, 'success');
+
+    } catch(err) {
+      showToast(`❌ Upload failed: ${err.message}`, 'error');
+    }
+
+    setUploading(u => ({ ...u, [blockIdx]: false }));
+    setProgress(p => ({ ...p, [blockIdx]: 0 }));
+    e.target.value = '';
+  }
+
+  async function removeVideo(blockIdx) {
+    try {
+      const updated = [...blocks];
+      updated[blockIdx] = { ...updated[blockIdx], video_path: '' };
+      setBlocks(updated);
+      await githubPut(
+        'content/hero.json',
+        JSON.stringify({ blocks: updated }, null, 2),
+        `Remove hero video ${blockIdx + 1}`,
+        heroSha
+      );
+      const refreshed = await githubGet('content/hero.json');
+      setHeroSha(refreshed.sha);
+      showToast('✅ Video removed. Website updates in 1-2 minutes.', 'success');
+    } catch(e) {
+      showToast(`❌ ${e.message}`, 'error');
+    }
+  }
+
+  if (loading) return (
+    <div style={{ textAlign:"center", padding:"4rem", color:"#C9B49A" }}>
+      Loading video settings...
+    </div>
+  );
+
+  return (
+    <div>
+      <SectionHeader
+        icon="🎬"
+        title="Hero Videos"
+        subtitle="Upload videos for the three blocks on your homepage"
+      />
+
+      {/* Size warning */}
+      <div style={{ background:"#FFF8F0", border:"1.5px solid #E8A96B", borderRadius:"4px", padding:"1rem 1.2rem", marginBottom:"1.5rem" }}>
+        <p style={{ fontSize:".84rem", color:"#4A3728", lineHeight:1.7 }}>
+          ⚠️ <strong>Before uploading:</strong> Compress your videos to under 50MB using a free tool like
+          <strong> HandBrake</strong> (handbrake.fr) or <strong>Clideo</strong> (clideo.com/compress-video).
+          Export at 720p MP4 for best results.
+        </p>
+      </div>
+
+      {/* Block cards */}
+      {BLOCK_INFO.map((info, i) => {
+        const block = blocks[i] || {};
+        const hasVideo = block.video_path && block.video_path !== '';
+        const isUploading = uploading[i];
+        const uploadPct = progress[i] || 0;
+
+        return (
+          <div key={i} style={{ background:"white", border:"1.5px solid #EDE3D6", borderRadius:"4px", marginBottom:"1.2rem", overflow:"hidden" }}>
+
+            {/* Header */}
+            <div style={{ background:"#2B1F14", padding:"1rem 1.5rem", display:"flex", alignItems:"center", gap:"1rem" }}>
+              <span style={{ fontSize:"1.3rem" }}>{info.icon}</span>
+              <div style={{ flex:1 }}>
+                <p style={{ color:"#F7F2EC", fontSize:".9rem", fontWeight:500 }}>{info.label}</p>
+                <p style={{ color:"rgba(247,242,236,.5)", fontSize:".7rem", letterSpacing:".1em", textTransform:"uppercase" }}>
+                  {info.orientation} · {info.aspect}
+                </p>
+              </div>
+              <span style={{ background: hasVideo ? "#4a9e6b" : "rgba(247,242,236,.15)", color: hasVideo ? "white" : "rgba(247,242,236,.5)", fontSize:".65rem", letterSpacing:".1em", textTransform:"uppercase", padding:".25rem .7rem", borderRadius:"2px" }}>
+                {hasVideo ? "✓ Video Active" : "No Video"}
+              </span>
+            </div>
+
+            <div style={{ padding:"1.2rem 1.5rem" }}>
+
+              {/* Background note */}
+              <p style={{ fontSize:".78rem", color:"#C9B49A", marginBottom:".8rem" }}>
+                {info.bgNote}
+              </p>
+
+              {/* Upload progress */}
+              {isUploading && (
+                <div style={{ marginBottom:"1rem" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:".4rem" }}>
+                    <p style={{ fontSize:".82rem", color:"#B07D4F" }}>
+                      {uploadPct < 50 ? "Reading file..." : uploadPct < 85 ? "Uploading to GitHub..." : "Saving..."}
+                    </p>
+                    <p style={{ fontSize:".82rem", color:"#B07D4F", fontWeight:500 }}>{uploadPct}%</p>
+                  </div>
+                  <div style={{ height:"6px", background:"#EDE3D6", borderRadius:"3px", overflow:"hidden" }}>
+                    <div style={{ height:"100%", background:"linear-gradient(to right,#B07D4F,#E8A96B)", borderRadius:"3px", width:`${uploadPct}%`, transition:"width .3s" }}/>
+                  </div>
+                </div>
+              )}
+
+              {/* Current video info */}
+              {hasVideo && !isUploading && (
+                <div style={{ background:"#F7F2EC", borderRadius:"4px", padding:".8rem 1rem", marginBottom:"1rem", display:"flex", alignItems:"center", gap:".8rem" }}>
+                  <span style={{ fontSize:"1.2rem" }}>🎥</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:".8rem", color:"#2B1F14", fontWeight:500 }}>Video uploaded</p>
+                    <p style={{ fontSize:".72rem", color:"#C9B49A", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                      {block.video_path}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Filming tip */}
+              <p style={{ fontSize:".78rem", color:"#4A3728", marginBottom:"1.2rem", lineHeight:1.7, background:"#FDFAF6", padding:".7rem .9rem", borderRadius:"4px", borderLeft:"3px solid #B07D4F" }}>
+                💡 <strong>Filming tip:</strong> {info.tip}. Keep it 15–30 seconds for smooth looping. Videos play silently on repeat automatically.
+              </p>
+
+              {/* Action buttons */}
+              <div style={{ display:"flex", gap:".8rem", flexWrap:"wrap" }}>
+                <input
+                  ref={fileRefs[i]}
+                  type="file"
+                  accept="video/mp4,video/mov,video/quicktime,video/avi,video/*"
+                  onChange={e => handleVideoSelect(e, i)}
+                  style={{ display:"none" }}
+                />
+                <Btn
+                  onClick={() => fileRefs[i].current.click()}
+                  variant="amber"
+                  small
+                  disabled={isUploading}
+                  loading={isUploading}
+                >
+                  {isUploading ? "Uploading..." : hasVideo ? "🔄 Replace Video" : "📹 Upload Video"}
+                </Btn>
+                {hasVideo && !isUploading && (
+                  <Btn onClick={() => removeVideo(i)} variant="danger" small>
+                    🗑 Remove
+                  </Btn>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Guidelines */}
+      <div style={{ background:"#F7F2EC", border:"1px solid #EDE3D6", borderRadius:"4px", padding:"1.2rem 1.5rem" }}>
+        <p style={{ fontSize:".78rem", letterSpacing:".15em", textTransform:"uppercase", color:"#B07D4F", marginBottom:".8rem" }}>
+          Video Guidelines
+        </p>
+        {[
+          "Maximum file size: 50MB per video",
+          "Recommended format: MP4",
+          "Recommended resolution: 720p (1280×720 for landscape, 720×1280 for portrait)",
+          "Left block: film vertically — holding phone upright",
+          "Right blocks: film horizontally — holding phone sideways",
+          "Keep videos 15–30 seconds for smooth seamless looping",
+          "Videos play automatically, silently, and on repeat",
+          "Free compression tool: handbrake.fr or clideo.com/compress-video"
+        ].map((tip, i) => (
+          <p key={i} style={{ fontSize:".82rem", color:"#4A3728", lineHeight:1.6, marginBottom:".3rem" }}>
+            <span style={{ color:"#B07D4F" }}>•</span> {tip}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ──
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -765,6 +1096,7 @@ export default function App() {
     { id:"reviews",  label:"Reviews",  icon:"⭐" },
     { id:"settings", label:"Settings", icon:"⚙️" },
     { id:"design",   label:"Design",   icon:"🖌️" },
+    { id:"videos", label:"Videos", icon:"🎬" },
   ];
 
   if (!loggedIn) return <Login onLogin={()=>setLoggedIn(true)}/>;
@@ -800,6 +1132,7 @@ export default function App() {
         {activeTab==="reviews"  && <ReviewsTab  showToast={showToast}/>}
         {activeTab==="settings" && <SettingsTab showToast={showToast}/>}
         {activeTab==="design"   && <DesignTab   showToast={showToast}/>}
+        {activeTab==="videos"   && <VideosTab   showToast={showToast}/>}
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={()=>setToast(null)}/>}
     </div>
