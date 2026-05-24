@@ -260,7 +260,20 @@
       <p class="section-subtitle" id="enquirySubtitle">New releases, behind-the-scenes studio moments, and exclusive subscriber offers — delivered to your inbox.</p>
     </div>
     <div id="enquirySection">
-      <!-- Enquiry form loaded dynamically -->
+      <form class="enquiry-form" onsubmit="submitEnquiry(event)">
+        <div class="enquiry-row">
+          <input class="enquiry-input" type="text" placeholder="Your name" required />
+          <input class="enquiry-input" type="email" placeholder="Your email address" required />
+        </div>
+        <div class="enquiry-row">
+          <input class="enquiry-input" type="text" placeholder="City" />
+          <input class="enquiry-input" type="text" placeholder="Country" />
+        </div>
+        <input class="enquiry-input" style="width:100%" type="tel" placeholder="Phone number (optional)" />
+        <textarea class="enquiry-textarea" placeholder="Your enquiry or message..." required></textarea>
+        <button type="submit" class="enquiry-btn" style="width:100%">Send Enquiry →</button>
+        <p class="enquiry-note" id="contactNote">We respond within 24 hours. Email us directly: info@glazglowgallery.com</p>
+      </form>
     </div>
   </section>
 
