@@ -1,0 +1,28 @@
+{
+  "steps": [
+    {
+      "number": "01",
+      "icon": "🎨",
+      "title": "Concept & Design",
+      "description": "Every work begins with a mood, a colour story, or an emotional intention — sketched and refined before a drop of resin is poured."
+    },
+    {
+      "number": "02",
+      "icon": "⚗️",
+      "title": "Material Preparation",
+      "description": "Resins are measured, pigments blended, and texture mediums prepared — each formula is calibrated for the specific piece."
+    },
+    {
+      "number": "03",
+      "icon": "✋",
+      "title": "Hand Crafting",
+      "description": "Pours, trowels, sculpting, and layering — entirely by hand. No two pieces can ever be identical; each carries its own signature."
+    },
+    {
+      "number": "04",
+      "icon": "✨",
+      "title": "Cure & Finish",
+      "description": "After curing, pieces are sealed with UV-resistant topcoat for longevity, then inspected and signed before being carefully packaged."
+    }
+  ]
+}
