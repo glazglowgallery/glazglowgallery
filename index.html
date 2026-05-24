@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
   <title>GlazGlow Gallery — Handcrafted Resin & Textured Art</title>
   <meta name="description" content="Handcrafted resin and textured art pieces, made with intention from our studio to your home. Each work is one of a kind." />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -13,7 +13,7 @@
       --amber:#B07D4F; --dark:#2B1F14; --charcoal:#4A3728;
       --glow:#E8A96B; --glass:rgba(247,242,236,0.55);
     }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
     body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--dark); overflow-x:hidden; cursor:none; }
     .cursor { position:fixed; top:0; left:0; width:12px; height:12px; background:var(--amber); border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); z-index:9999; transition:width .15s,height .15s; mix-blend-mode:multiply; }
     .cursor-ring { position:fixed; top:0; left:0; width:38px; height:38px; border:1.5px solid var(--amber); border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); z-index:9998; }
@@ -230,26 +230,37 @@
       .modal-gallery-main{min-height:300px}
     }
     @media(max-width:768px){
-      body{cursor:auto}
-      .cursor,.cursor-ring{display:none}
-      nav{padding:1.2rem 1.8rem}
-      .nav-links{display:none}
-      .nav-hamburger{display:flex}
-      .hero{grid-template-columns:1fr;min-height:auto}
-      .hero-right{height:50vw}
-      .hero-left{padding:6rem 2rem 3rem}
-      section{padding:4rem 2rem}
-      .categories-grid{grid-template-columns:1fr}
-      .category-card{height:340px}
-      .products-grid{grid-template-columns:1fr 1fr;gap:1rem}
-      .process-grid{grid-template-columns:1fr}
-      .testimonials-grid{grid-template-columns:1fr}
-      #enquiry{grid-template-columns:1fr;gap:2.5rem;padding:4rem 2rem}
-      .footer-grid{grid-template-columns:1fr 1fr;gap:2.5rem}
-      footer{padding:4rem 2rem 2rem}
-      .modal{grid-template-columns:1fr;max-height:95vh}
-      .modal-info{padding:1.5rem}
-    }
+  body{cursor:auto; width:100%; overflow-x:hidden;}
+  .cursor,.cursor-ring{display:none}
+  nav{padding:1rem 1.2rem; width:100%;}
+  .nav-links{display:none}
+  .nav-hamburger{display:flex}
+  .nav-enquire{padding:.5rem 1rem; font-size:.75rem;}
+  .hero{grid-template-columns:1fr;min-height:auto; width:100%;}
+  .hero-right{height:60vw; width:100%;}
+  .hero-left{padding:5rem 1.5rem 2.5rem; width:100%;}
+  .hero-title{font-size:2.6rem;}
+  .hero-desc{max-width:100%;}
+  section{padding:3.5rem 1.5rem; width:100%;}
+  .categories-grid{grid-template-columns:1fr}
+  .category-card{height:300px}
+  .products-grid{grid-template-columns:1fr 1fr;gap:.8rem}
+  .process-grid{grid-template-columns:1fr}
+  .testimonials-grid{grid-template-columns:1fr}
+  #enquiry{grid-template-columns:1fr;gap:2rem;padding:3rem 1.5rem; width:100%;}
+  .enquiry-row{flex-direction:column;gap:.8rem}
+  .enquiry-input{width:100%; flex:none;}
+  #enquirySection{width:100%}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
+  footer{padding:3.5rem 1.5rem 2rem}
+  .marquee-wrap{width:100%; overflow:hidden;}
+  .modal{grid-template-columns:1fr;max-height:95vh; width:100%;}
+  .modal-info{padding:1.5rem}
+  .modal-gallery{min-height:260px}
+  .modal-gallery-main{min-height:260px}
+  .hero-ctas{flex-direction:column; gap:.8rem;}
+  .btn-primary,.btn-outline{text-align:center; width:100%;}
+}
   </style>
 </head>
 <body>
