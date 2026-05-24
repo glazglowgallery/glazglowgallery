@@ -1,9 +1,11 @@
 {
-  "title": "Handmade Textured Landscape Wall Art",
-  "category": "Textured Art",
-  "price": "$199",
-  "description": "Elevate your home decor with this minimalist textured landscape wall art. \n\nFeaturing sculpted textures, organic movement, and contemporary color palettes, this artwork is designed to complement modern, Scandinavian, Japandi, and earthy interiors beautifully.",
-  "image": "/images/products/ocean-geode-pour-1779602529659.png",
-  "original_price": "$249",
-  "badge": "New"
+  "title": "Ocean Geode Pour",
+  "category": "Resin Art",
+  "price": "185",
+  "price_on_request": false,
+  "original_price": "220",
+  "badge": "New",
+  "images": ["/images/products/ocean-geode-pour-1779548810868.jpg"],
+  "dimensions": "60cm x 40cm",
+  "description": "A stunning ocean-inspired resin pour with deep blues and teals."
 }
