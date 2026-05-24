@@ -1,8 +1,13 @@
 {
   "title": "Handmade Resin Name Plate",
   "category": "Resin Art",
-  "price": "$129/each",
   "description": "Add a touch of elegance to your entryway with our handmade resin name plate. \n\nCrafted with premium quality resin, real crystals, and gold details, each piece is unique and made to last.\n\n\nMaterial: Premium Resin, Real Crystals, Gold Paint\n\nSize: Each plate approx. 10 x 6 inches\n\nThickness: 8-10 mm\n\nCustomization: Names can be customized (font, text & layout)\n\nInstallation: Comes with gold chains and hooks for easy hanging\n\nUsage: Suitable for outdoor & indoor use",
-  "image": "/images/products/desert-horizon-1779603314597.png",
+  "images": [
+    "/images/products/desert-horizon-1779603314597.png",
+    "/images/products/desert-horizon-1779604139727-vp81.png",
+    "/images/products/desert-horizon-1779604142989-a29p.png",
+    "/images/products/desert-horizon-1779604145287-xp2h.png"
+  ],
+  "price_on_request": true,
   "badge": "New"
 }
