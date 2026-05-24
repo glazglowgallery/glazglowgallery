@@ -523,12 +523,6 @@ function setupEnquiryForm() {
   });
 }
 
-    function submitEnquiry(e){
-      e.preventDefault();
-      const btn=e.target.querySelector('button[type=submit]');
-      btn.textContent='✓ Enquiry Sent!';btn.style.background='#4a9e6b';btn.disabled=true;
-    }
-
     // ── Load Footer ──
     async function loadFooter() {
       try {
