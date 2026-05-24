@@ -1,0 +1,22 @@
+{
+  "blocks": [
+    {
+      "label": "Resin Art",
+      "video_path": "",
+      "orientation": "portrait",
+      "description": "Left tall block — portrait video (vertical)"
+    },
+    {
+      "label": "Ocean Pour",
+      "video_path": "",
+      "orientation": "landscape",
+      "description": "Top right block — landscape video (horizontal)"
+    },
+    {
+      "label": "Texture Art",
+      "video_path": "",
+      "orientation": "landscape",
+      "description": "Bottom right block — landscape video (horizontal)"
+    }
+  ]
+}
