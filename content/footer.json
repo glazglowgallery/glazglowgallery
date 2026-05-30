@@ -7,24 +7,66 @@
   },
   "columns": {
     "shop": [
-      { "label": "All Works", "url": "#shop" },
-      { "label": "Resin Art", "url": "#shop" },
-      { "label": "Textured Art", "url": "#shop" },
-      { "label": "New Arrivals", "url": "#shop" },
-      { "label": "Custom Orders", "url": "mailto:info@glazglowgallery.com" }
+      {
+        "label": "All Works",
+        "url": "#shop"
+      },
+      {
+        "label": "Resin Art",
+        "url": "#shop"
+      },
+      {
+        "label": "Textured Art",
+        "url": "#shop"
+      },
+      {
+        "label": "New Arrivals",
+        "url": "#shop"
+      },
+      {
+        "label": "Custom Orders",
+        "url": "mailto:info@glazglowgallery.com"
+      }
     ],
     "information": [
-      { "label": "About the Artist", "url": "#" },
-      { "label": "Studio Process", "url": "#process" },
-      { "label": "Care Guide", "url": "#" },
-      { "label": "Shipping & Returns", "url": "#" },
-      { "label": "FAQ", "url": "#" }
+      {
+        "label": "About the Artist",
+        "url": "#"
+      },
+      {
+        "label": "Studio Process",
+        "url": "#process"
+      },
+      {
+        "label": "Care Guide",
+        "url": "#"
+      },
+      {
+        "label": "Shipping & Returns",
+        "url": "#"
+      },
+      {
+        "label": "FAQ",
+        "url": "#"
+      }
     ],
     "contact": [
-      { "label": "info@glazglowgallery.com", "url": "mailto:info@glazglowgallery.com" },
-      { "label": "Commission a Piece", "url": "mailto:info@glazglowgallery.com" },
-      { "label": "Wholesale Enquiries", "url": "mailto:info@glazglowgallery.com" },
-      { "label": "Stockists", "url": "#" }
+      {
+        "label": "info@glazglowgallery.com",
+        "url": "mailto:info@glazglowgallery.com"
+      },
+      {
+        "label": "Commission a Piece",
+        "url": "mailto:info@glazglowgallery.com"
+      },
+      {
+        "label": "Wholesale Enquiries",
+        "url": "mailto:info@glazglowgallery.com"
+      },
+      {
+        "label": "Stockists",
+        "url": "#"
+      }
     ]
   }
 }
