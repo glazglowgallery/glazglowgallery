@@ -219,55 +219,126 @@ function ProductsTab({ showToast }) {
   async function saveProduct() {
     setSaving(true);
     try {
-      const slug = addingNew ? form.title.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-") : products[editingIdx].slug;
-      const sha = addingNew ? null : products[editingIdx].sha;
-      let allImages = [...form.images];
+      // Calculate the desired slug from current title
+      const desiredSlug = form.title.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
 
+      const oldSlug = addingNew ? null : products[editingIdx].slug;
+      const oldSha = addingNew ? null : products[editingIdx].sha;
+
+      // Determine if we need to rename
+      const isRenaming = !addingNew && oldSlug !== desiredSlug;
+      const finalSlug = desiredSlug;
+
+      // Step 1 — Upload any new images
+      let allImages = [...form.images];
       if (newImages.length > 0) {
         setUploadingImages(true);
         for (const file of newImages) {
           const b64 = await fileToBase64(file);
-          const imgPath = `images/products/${slug}-${Date.now()}-${Math.random().toString(36).slice(2,6)}.${file.name.split(".").pop()}`;
-          await githubPutBinary(imgPath, b64, `Upload image for ${slug}`);
+          const ext = file.name.split(".").pop();
+          const imgPath = `images/products/${finalSlug}-${Date.now()}-${Math.random().toString(36).slice(2,6)}.${ext}`;
+          await githubPutBinary(imgPath, b64, `Upload image for ${finalSlug}`);
           allImages.push(`/${imgPath}`);
         }
         setUploadingImages(false);
       }
 
-      const updated = { title:form.title, category:form.category, description:form.description, images:allImages, price_on_request:form.price_on_request };
+      // Step 2 — Build the product object
+      const updated = {
+        title: form.title,
+        category: form.category,
+        description: form.description,
+        images: allImages,
+        price_on_request: form.price_on_request,
+      };
       if (!form.price_on_request && form.price) updated.price = form.price;
       if (form.original_price) updated.original_price = form.original_price;
       if (form.badge) updated.badge = form.badge;
       if (form.dimensions) updated.dimensions = form.dimensions;
 
-      // If sha is null the file doesn't exist yet — create it
-      // If sha exists — update it
-      let fileSha = sha;
-      if (!fileSha) {
+      // Step 3 — Save the product file
+      if (isRenaming) {
+        // Renaming: delete old file, create new one
+        // First check if a file with the new slug already exists (to avoid conflict)
+        let newFileSha = null;
         try {
-          const existing = await githubGet(`content/products/${slug}.json`);
-          fileSha = existing.sha;
+          const existingNew = await githubGet(`content/products/${finalSlug}.json`);
+          newFileSha = existingNew.sha;
         } catch {
-          // File doesn't exist — will be created fresh
-          fileSha = null;
+          // New slug file doesn't exist — good
+        }
+
+        // Create the new file
+        await githubPut(
+          `content/products/${finalSlug}.json`,
+          JSON.stringify(updated, null, 2),
+          `Rename product: ${oldSlug} → ${finalSlug}`,
+          newFileSha
+        );
+
+        // Delete the old file
+        if (oldSha) {
+          try {
+            await githubDelete(
+              `content/products/${oldSlug}.json`,
+              `Delete old product file: ${oldSlug}`,
+              oldSha
+            );
+          } catch(e) {
+            console.log("Could not delete old file:", e.message);
+          }
+        }
+
+        // Update index.json — replace old slug with new slug
+        const { slugs, sha: idxSha } = await getIndex();
+        const idx = slugs.indexOf(oldSlug);
+        if (idx !== -1) {
+          slugs[idx] = finalSlug;
+        } else if (!slugs.includes(finalSlug)) {
+          slugs.push(finalSlug);
+        }
+        await saveIndex(slugs, idxSha);
+
+      } else {
+        // Not renaming — just update existing or create new
+        let fileSha = oldSha;
+
+        // If sha is null check if file already exists
+        if (!fileSha) {
+          try {
+            const existing = await githubGet(`content/products/${finalSlug}.json`);
+            fileSha = existing.sha;
+          } catch {
+            fileSha = null;
+          }
+        }
+
+        await githubPut(
+          `content/products/${finalSlug}.json`,
+          JSON.stringify(updated, null, 2),
+          `${addingNew ? "Add" : "Update"} product: ${form.title}`,
+          fileSha
+        );
+
+        // If adding new add to index
+        if (addingNew) {
+          const { slugs, sha: idxSha } = await getIndex();
+          if (!slugs.includes(finalSlug)) slugs.push(finalSlug);
+          await saveIndex(slugs, idxSha);
         }
       }
-      await githubPut(
-        `content/products/${slug}.json`,
-        JSON.stringify(updated, null, 2),
-        `${addingNew?"Add":"Update"} product: ${form.title}`,
-        fileSha
+
+      showToast(
+        `✅ Product ${addingNew ? "added" : isRenaming ? "renamed & saved" : "saved"}! Website updates in 1-2 mins.`,
+        "success"
       );
+      cancel();
+      loadProducts();
 
-      if (addingNew) {
-        const { slugs, sha:idxSha } = await getIndex();
-        if (!slugs.includes(slug)) slugs.push(slug);
-        await saveIndex(slugs, idxSha);
-      }
-
-      showToast(`✅ Product ${addingNew?"added":"saved"}! Website updates in 1-2 mins.`, "success");
-      cancel(); loadProducts();
-    } catch(e) { showToast(`❌ ${e.message}`, "error"); setUploadingImages(false); }
+    } catch(e) {
+      showToast(`❌ ${e.message}`, "error");
+      setUploadingImages(false);
+    }
     setSaving(false);
   }
 
