@@ -936,9 +936,9 @@ function VideosTab({ showToast }) {
     if (!file) return;
 
     // Check file size — 50MB limit
-    const maxSize = 50 * 1024 * 1024;
+    const maxSize = 22 * 1024 * 1024;
     if (file.size > maxSize) {
-      showToast(`❌ File too large: ${(file.size/1024/1024).toFixed(1)}MB. Maximum is 50MB. Please compress the video first.`, 'error');
+      showToast(`❌ File too large: ${(file.size/1024/1024).toFixed(1)}MB. Maximum is 25MB. Please compress the video first.`, 'error');
       e.target.value = '';
       return;
     }
