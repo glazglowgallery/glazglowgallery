@@ -495,9 +495,20 @@
 
     // ── Format Price ──
     function formatPrice(p) {
-      if (!p || p === '' || p.toLowerCase() === 'on request' || p.toLowerCase() === 'price on request') return null;
-      const num = p.toString().replace(/[^0-9.]/g, '');
+      if (p === null || p === undefined) return null;
+      const text = p.toString().trim();
+      if (!text || text.toLowerCase() === 'on request' || text.toLowerCase() === 'price on request') return null;
+      const num = text.replace(/[^0-9.]/g, '');
       return num ? `AUD $${parseFloat(num).toLocaleString('en-AU')}` : null;
+    }
+
+    function isPriceOnRequest(value) {
+      if (value === true || value === 1) return true;
+      if (typeof value === 'string') {
+        const v = value.trim().toLowerCase();
+        return v === 'true' || v === '1' || v === 'yes';
+      }
+      return false;
     }
 
     // ── Modal State ──
@@ -518,12 +529,16 @@
       document.getElementById('modalTitle').textContent = p.title || '';
 
       const priceEl = document.getElementById('modalPrice');
-      const formatted = !p.price_on_request ? formatPrice(p.price) : null;
-      if (p.price_on_request || !formatted) {
+      const priceOnRequest = isPriceOnRequest(p.price_on_request);
+      const formatted = priceOnRequest ? null : formatPrice(p.price);
+      if (priceOnRequest) {
         priceEl.textContent = 'Price on Request';
         priceEl.className = 'modal-price on-request';
-      } else {
+      } else if (formatted) {
         priceEl.textContent = formatted;
+        priceEl.className = 'modal-price';
+      } else {
+        priceEl.textContent = '';
         priceEl.className = 'modal-price';
       }
 
@@ -646,10 +661,14 @@
         ? `<img src="${firstImg}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;transition:transform .5s ease;">`
         : `<div class="img-bg" style="width:100%;height:100%;background:${firstImg.gradient};transition:transform .5s ease;"></div>`;
 
-      const formatted = !p.price_on_request ? formatPrice(p.price) : null;
-      const priceHTML = (p.price_on_request || !formatted)
+      const priceOnRequest = isPriceOnRequest(p.price_on_request);
+      const formatted = priceOnRequest ? null : formatPrice(p.price);
+      const originalFormatted = formatPrice(p.original_price);
+      const priceHTML = priceOnRequest
         ? `<p class="product-price on-request">Price on Request</p>`
-        : `<p class="product-price">${formatted}${p.original_price?`<span class="original">AUD $${parseFloat(p.original_price.toString().replace(/[^0-9.]/g,'')).toLocaleString('en-AU')}</span>`:''}</p>`;
+        : formatted
+          ? `<p class="product-price">${formatted}${originalFormatted ? `<span class="original">${originalFormatted}</span>` : ''}</p>`
+          : '';
 
       const card = document.createElement('div');
       card.className = 'product-card';
