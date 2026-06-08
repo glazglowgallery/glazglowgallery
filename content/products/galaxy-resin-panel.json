@@ -9,6 +9,7 @@
     "/images/products/galaxy-resin-panel-1780139011862-ia0t.png",
     "/images/products/galaxy-resin-panel-1780139015039-f9xm.png"
   ],
-  "price_on_request": true,
+  "price_on_request": false,
+  "price": "170",
   "dimensions": "Made to order in your preferred size — contact us for custom dimensions and pricing."
 }
