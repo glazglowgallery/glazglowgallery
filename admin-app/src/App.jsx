@@ -173,6 +173,13 @@ function ProductsTab({ showToast }) {
   const fileRef = useRef();
   const DEFAULT_SLUGS = ["ocean-geode-pour","sunset-fluid-art","desert-horizon","galaxy-resin-panel","warm-earth-relief","teal-agate-slice","linen-clay-weave","rose-nebula-pour"];
 
+  // Keep this as a real boolean. Old product files may contain "false" as a string,
+  // and JavaScript treats non-empty strings as truthy, which makes the website show
+  // "Price on Request" even when the admin toggle looks off.
+  function toBoolean(value) {
+    return value === true || value === "true" || value === 1 || value === "1";
+  }
+
   useEffect(() => { loadProducts(); }, []);
 
   async function getIndex() {
@@ -194,7 +201,7 @@ function ProductsTab({ showToast }) {
 
   function startEdit(p, idx) {
     setEditingIdx(idx); setAddingNew(false);
-    setForm({ title:p.title||"", category:p.category||"Resin Art", price:p.price||"", price_on_request:p.price_on_request||false, original_price:p.original_price||"", badge:p.badge||"", description:p.description||"", dimensions:p.dimensions||"", images:p.images||[p.image].filter(Boolean) });
+    setForm({ title:p.title||"", category:p.category||"Resin Art", price:p.price||"", price_on_request:toBoolean(p.price_on_request), original_price:p.original_price||"", badge:p.badge||"", description:p.description||"", dimensions:p.dimensions||"", images:p.images||[p.image].filter(Boolean) });
     setNewImages([]); setImagePreviews([]);
   }
 
@@ -244,14 +251,15 @@ function ProductsTab({ showToast }) {
       }
 
       // Step 2 — Build the product object
+      const priceOnRequest = toBoolean(form.price_on_request);
       const updated = {
         title: form.title,
         category: form.category,
         description: form.description,
         images: allImages,
-        price_on_request: form.price_on_request,
+        price_on_request: priceOnRequest,
       };
-      if (!form.price_on_request && form.price) updated.price = form.price;
+      if (!priceOnRequest && String(form.price || "").trim()) updated.price = String(form.price).trim();
       if (form.original_price) updated.original_price = form.original_price;
       if (form.badge) updated.badge = form.badge;
       if (form.dimensions) updated.dimensions = form.dimensions;
@@ -456,7 +464,8 @@ function ProductsTab({ showToast }) {
         {products.length===0 && <p style={{ color:"#C9B49A", textAlign:"center", padding:"2rem" }}>No products yet.</p>}
         {products.map((p, i) => {
           const firstImg = (p.images&&p.images[0]) || p.image;
-          const priceLabel = p.price_on_request ? "Price on Request" : (p.price ? `AUD $${p.price}` : "—");
+          const priceOnRequest = toBoolean(p.price_on_request);
+          const priceLabel = priceOnRequest ? "Price on Request" : (p.price ? `AUD $${p.price}` : "—");
           return (
             <div key={p.slug} style={{ background:"white", border:"1.5px solid #EDE3D6", borderRadius:"4px", padding:"1.2rem", display:"flex", alignItems:"center", gap:"1rem" }}>
               <div onClick={()=>startEdit(p,i)} style={{ display:"flex", alignItems:"center", gap:"1rem", flex:1, cursor:"pointer" }}>
@@ -469,7 +478,7 @@ function ProductsTab({ showToast }) {
                   <p style={{ fontSize:".72rem", color:"#C9B49A", textTransform:"uppercase", letterSpacing:".1em" }}>{p.category}</p>
                 </div>
                 <div style={{ textAlign:"right", flexShrink:0 }}>
-                  <p style={{ color:p.price_on_request?"#4A3728":"#B07D4F", fontSize:p.price_on_request?".78rem":".95rem", fontStyle:p.price_on_request?"italic":"normal" }}>{priceLabel}</p>
+                  <p style={{ color:priceOnRequest?"#4A3728":"#B07D4F", fontSize:priceOnRequest?".78rem":".95rem", fontStyle:priceOnRequest?"italic":"normal" }}>{priceLabel}</p>
                   {p.badge && <span style={{ fontSize:".65rem", background:"#2B1F14", color:"#F7F2EC", padding:".15rem .4rem", borderRadius:"2px" }}>{p.badge}</span>}
                 </div>
                 <span style={{ color:"#C9B49A" }}>›</span>
