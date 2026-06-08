@@ -8,13 +8,13 @@
     },
     {
       "label": "Ocean Pour",
-      "video_path": "/videos/hero-landscape-2-1780878771735.mp4",
+      "video_path": "",
       "orientation": "landscape",
       "description": "Top right block — landscape video (horizontal)"
     },
     {
       "label": "Texture Art",
-      "video_path": "/videos/hero-landscape-3-1780878879546.mp4",
+      "video_path": "",
       "orientation": "landscape",
       "description": "Bottom right block — landscape video (horizontal)"
     }
