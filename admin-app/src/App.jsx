@@ -240,7 +240,24 @@ function ProductsTab({ showToast }) {
       if (form.badge) updated.badge = form.badge;
       if (form.dimensions) updated.dimensions = form.dimensions;
 
-      await githubPut(`content/products/${slug}.json`, JSON.stringify(updated,null,2), `${addingNew?"Add":"Update"} product: ${form.title}`, sha);
+      // If sha is null the file doesn't exist yet — create it
+      // If sha exists — update it
+      let fileSha = sha;
+      if (!fileSha) {
+        try {
+          const existing = await githubGet(`content/products/${slug}.json`);
+          fileSha = existing.sha;
+        } catch {
+          // File doesn't exist — will be created fresh
+          fileSha = null;
+        }
+      }
+      await githubPut(
+        `content/products/${slug}.json`,
+        JSON.stringify(updated, null, 2),
+        `${addingNew?"Add":"Update"} product: ${form.title}`,
+        fileSha
+      );
 
       if (addingNew) {
         const { slugs, sha:idxSha } = await getIndex();
