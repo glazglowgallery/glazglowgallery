@@ -1,0 +1,11 @@
+{
+  "title": "Test product",
+  "category": "Resin Art",
+  "description": "This is a test product",
+  "images": [
+    "/images/products/test-product-1780881751563-2tej.jpg"
+  ],
+  "price_on_request": false,
+  "price": "500",
+  "original_price": "500"
+}
